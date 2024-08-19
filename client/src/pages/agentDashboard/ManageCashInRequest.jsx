@@ -7,7 +7,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Loader from "../../components/Loader";
 import useAuth from "../../hooks/useAuth";
 const ManageCashInRequest = () => {
-	const {user} = useAuth()
+	const { user } = useAuth();
 	const axiosSecure = useAxiosSecure();
 	const [search, setSearch] = useState("");
 	const [filter, setFilter] = useState("");
@@ -25,9 +25,9 @@ const ManageCashInRequest = () => {
 			return data;
 		},
 	});
-console.log(allCashInRequest);
-	const changeRole = (query) => {
-		const { user, event } = query;
+	const confirmCashIn = (query) => {
+		const { transaction, event } = query;
+		console.log(transaction);
 		Swal.fire({
 			title: "Are you sure?",
 			icon: "warning",
@@ -37,18 +37,19 @@ console.log(allCashInRequest);
 			confirmButtonText: "Yes",
 		}).then((result) => {
 			if (result.isConfirmed) {
-				axiosSecure
-					.patch(`/change-role?event=${event}&phone=${user.phone}`)
-					.then((res) => {
-						console.log(res);
-						if (res.data.modifiedCount > 0) {
-							refetch();
-							Swal.fire({
-								title: "Done!",
-								icon: "success",
-							});
-						}
-					});
+				axiosSecure.patch(`/confirm-cashin`, transaction).then((res) => {
+					console.log(res);
+					if (
+						res.data.updateUserBalance.modifiedCount > 0 &&
+						res.data.updateAgentBalance.modifiedCount > 0
+					) {
+						refetch();
+						Swal.fire({
+							title: "Done!",
+							icon: "success",
+						});
+					}
+				});
 			}
 		});
 	};
@@ -88,11 +89,10 @@ console.log(allCashInRequest);
 						className="w-full h-10 border-2 border-sky-300 focus:outline-none focus:border-sky-300 text-sky-300 rounded px-2 md:px-3 py-0 md:py-1 tracking-wider"
 					>
 						<option value="All" disabled selected>
-							Filter By Role
+							Filter By Status
 						</option>
-						<option value="user">User</option>
-						<option value="agent">Agent</option>
 						<option value="pending">Pending</option>
+						<option value="success">Success</option>
 					</select>
 				</form>
 				<div className="overflow-x-auto  rounded-t-2xl">
@@ -101,62 +101,41 @@ console.log(allCashInRequest);
 						<thead>
 							<tr className="bg-orange-200 text-start">
 								<th></th>
-								<th>Name</th>
-								<th>Role</th>
+								<th>User Name</th>
+								<th>User Phone</th>
+								<th>Requested Amount</th>
 								<th className="ml-3">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
 							{/* row 1 */}
-							{allCashInRequest?.map((user, index) => (
-								<tr key={user._id}>
+							{allCashInRequest?.map((transaction, index) => (
+								<tr key={transaction.user._id}>
 									<td>{index + 1}</td>
-									<td>{user?.name}</td>
-									<td>{user?.role}</td>
+									<td>{transaction.user?.name}</td>
+									<td>{transaction.user?.phone}</td>
+									<td>{transaction.amount}</td>
 									<td className="">
 										<select
 											onChange={() =>
-												changeRole({ user, event: event.target.value })
+												confirmCashIn({
+													transaction,
+													event: event.target.value,
+												})
 											}
-											id="roleType"
-											name="roleType"
 											className="w-full h-10 border-2 border-sky-300 focus:outline-none focus:border-sky-300 text-sky-300 rounded px-2 md:px-3 py-0 md:py-1 tracking-wider"
 										>
 											<option value="role" disabled selected>
-												Change Role
+												Confirm CashIn
 											</option>
-											<option
-												value="user"
-												className={`${user.role == "user" ? "hidden" : ""}`}
-											>
-												User
-											</option>
-											<option
-												value="agent"
-												className={`${user.role == "agent" ? "hidden" : ""}`}
-											>
-												Agent
-											</option>
-											<option
-												value="admin"
-												className={`${user.role == "admin" ? "hidden" : ""}`}
-											>
-												Admin
-											</option>
-											<option
-												value="approve"
-												className={`${
-													user.status == "approve" ? "hidden" : ""
-												}`}
-											>
-												Approve
-											</option>
-											<option
-												value="reject"
-												className={`${user.role == "reject" ? "hidden" : ""}`}
-											>
-												Reject
-											</option>
+											{transaction.status === "success" ? (
+												<option disabled>Success</option>
+											) : (
+												<>
+													<option value="confirm">Confirm</option>
+													<option value="reject">Reject</option>
+												</>
+											)}
 										</select>
 									</td>
 								</tr>

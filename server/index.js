@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 // app
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASS}@cluster0.zyi5zeh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -62,10 +62,54 @@ async function run() {
 		});
 
 		// get cashin request
-		app.get("/all-cashin-request", async (req, res) => {
-			const result = await cashInRequestedCollection.find().toArray();
+		app.get("/all-cashin-request/:agent", async (req, res) => {
+			const { agent } = req.params;
+			const result = await cashInRequestedCollection
+				.find({ agentPhoneNumber: agent })
+				.toArray();
 			res.send(result);
 		});
+		// confirm or reject user cashin
+		app.patch("/confirm-cashin", async (req, res) => {
+			const { user, amount, agentPhoneNumber, _id } = req.body;
+			const { phone: userPhoneNumber } = user;
+			const { balance: agentBalance } = await usersCollection.findOne({
+				phone: agentPhoneNumber,
+			});
+			const { balance: userBalance, phone } = await usersCollection.findOne({
+				phone: userPhoneNumber,
+			});
+			if (agentBalance < amount)
+				return res.send({ message: "Your Balance Is Low" });
+
+			const updateUserBalance = await usersCollection.updateOne(
+				{ phone: phone },
+				{
+					$set: {
+						balance: userBalance + amount,
+					},
+				},
+			);
+			const updateAgentBalance = await usersCollection.updateOne(
+				{ phone: agentPhoneNumber },
+				{
+					$set: {
+						balance: agentBalance - amount,
+					},
+				},
+			);
+			await cashInRequestedCollection.updateOne(
+				{ _id: new ObjectId(_id) },
+				{
+					$set: {
+						status: "success",
+					},
+				},
+			);
+
+			res.status(200).send({ updateUserBalance, updateAgentBalance });
+		});
+
 		// cash in
 		app.post("/cash-in", async (req, res) => {
 			const {
@@ -100,7 +144,7 @@ async function run() {
 				timeStamp: Date.now(),
 				transaction: crypto.randomUUID(),
 				reference,
-				status: "cashIn",
+				PaymentMethod: "cashIn",
 			};
 			await cashInRequestedCollection.insertOne(transactionDoc);
 			res.status(200).send({
