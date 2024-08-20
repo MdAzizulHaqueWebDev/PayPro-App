@@ -149,8 +149,15 @@ const Navbar = () => {
 											<small>Tap to Show Amount</small>
 										</p>
 									)}
-									<p></p>
-									<p>profile</p>
+									{/* <p></p> */}
+									<div className="avatar">
+										<div className="ring-primary ring-offset-base-100 w-10 rounded-full ring ring-offset-2">
+											<img
+												className="rounded-full"
+												src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwyfHxoZWFkc2hvdHxlbnwwfDB8fHwxNjk1ODE3MjEzfDA&ixlib=rb-4.0.3&q=80&w=1080"
+											/>
+										</div>
+									</div>
 								</div>
 							) : (
 								<Link

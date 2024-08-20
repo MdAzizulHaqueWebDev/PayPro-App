@@ -14,6 +14,8 @@ import LoggedHome from "../pages/LoggedHome";
 import MainLayout from "../layout/MainLayout";
 import ManageCashInRequest from "../pages/agentDashboard/ManageCashInRequest";
 import Profile from "../pages/userDashboard/Profile";
+import TransactionHistory from "../pages/userDashboard/TransactionHistory";
+import ManageCashOutRequest from "../pages/agentDashboard/ManageCashOutRequest";
 const routes = createBrowserRouter([
 	{
 		path: "/",
@@ -81,19 +83,25 @@ const routes = createBrowserRouter([
 				index: true,
 				element: <Profile />,
 			},
+			{
+				path: "/dashboard/history",
+				element: <TransactionHistory />,
+			},
 			// admin routes
 			{
 				path: "manage-user",
 				element: <ManageUsers />,
 			},
-			
+
 			// agent routes
 			{
 				path: "cashin-requested",
 				element: <ManageCashInRequest />,
 			},
-
-
+			{
+				path: "cashout-requested",
+				element: <ManageCashOutRequest />,
+			},
 		],
 	},
 ]);

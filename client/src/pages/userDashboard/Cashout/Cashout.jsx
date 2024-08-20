@@ -9,14 +9,14 @@ import useAuth from "../../../hooks/useAuth";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
 const Cashout = () => {
 	const [loading, setLoading] = useState(false);
-	const { user, setRefetchUser, refetchUser } = useAuth();
+	const { user } = useAuth();
 	const axiosSecure = useAxiosSecure();
 	const { balance } = user || {};
 	const amountCheckerRegex = /^\d+$/;
 	const handleCashOutForm = async (event) => {
 		event.preventDefault();
 		const form = event.target;
-		const amount = parseInt(form.amount.value);
+		const amount = Number(form.amount.value);
 		if (!amountCheckerRegex.test(amount)) return toast.error("Invalid Amount");
 		const agentPhoneNumber = form.receiver.value;
 		const reference = form.reference.value;
@@ -30,26 +30,19 @@ const Cashout = () => {
 		const cashOutTransaction = {
 			amount,
 			pin,
-			payStatus: "cashOut",
+			payMethod: "cashOut",
 			agentPhoneNumber,
 			reference,
 			cashOuterDetail: user,
 		};
 		setLoading(true);
-		const data = await axiosSecure.post("/cash-out", cashOutTransaction);
-		if (data?.code) {
-			const errorMessage = data.response.data.message;
-			toast.error(errorMessage);
+		const { data } = await axiosSecure.post("/cash-out", cashOutTransaction);
+		if (data?.result?.insertedId) {
 			setLoading(false);
-			return;
-		}
-		if (data.status === 200) {
-			setRefetchUser(!refetchUser);
-			setLoading(false);
-			toast.success("Cash Out Success");
+			toast.success(data.message);
 			form.reset();
-			// window.location.replace("/")
 		}
+
 		console.log(data);
 	};
 	return (
@@ -72,6 +65,7 @@ const Cashout = () => {
 							type="number"
 							className="block py-2.5 ps-6 pe-0 w-full text-lg bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
 							placeholder="Enter Your amount"
+							required
 						/>
 					</div>
 					Amount
@@ -88,6 +82,7 @@ const Cashout = () => {
 							className="block py-2.5 ps-6 pe-0 w-full text-lg bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
 							pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
 							placeholder="Enter Agent Number"
+							required
 						/>
 					</div>
 					Phone Number
@@ -104,6 +99,7 @@ const Cashout = () => {
 								id="floating-phone-number"
 								className="block py-2.5 ps-6 pe-0 w-full text-lg bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
 								placeholder="Enter Your pin"
+								required
 							/>
 						</div>
 						<h5 className="font-bold ">Pin</h5>
@@ -119,6 +115,7 @@ const Cashout = () => {
 							type="text"
 							className="block py-2.5 ps-6 pe-0 w-full text-lg bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
 							placeholder="Enter Reference"
+							required
 						/>
 					</div>
 					Reference

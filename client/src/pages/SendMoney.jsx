@@ -6,7 +6,7 @@ import useAuth from "../hooks/useAuth";
 import toast from "react-hot-toast";
 import useAxiosSecure from "../hooks/useAxiosSecure";
 import { useState } from "react";
-import TransactionHistory from "../components/TransactionHistory";
+import TransactionHistory from "./userDashboard/TransactionHistory";
 const SendMoney = () => {
 	const [loading, setLoading] = useState(false);
 	const { user, setRefetchUser, refetchUser } = useAuth();

@@ -46,17 +46,37 @@ async function run() {
 		const database = client.db("mobile-financial-app");
 		// database collections
 		const usersCollection = database.collection("users");
-		const agentCollection = database.collection("agent");
-		const cashInRequestedCollection = database.collection("cashInRequested");
-		const transactionCollection = database.collection("transaction");
+		const sendMoneyTransactionCollection = database.collection(
+			"send-money-transaction",
+		);
+		const cashOutTransactionCollection = database.collection(
+			"cash-out-transaction",
+		);
+		const cashInTransactionCollection = database.collection(
+			"cash-in-transaction",
+		);
 
 		// tex
 
 		// get transaction
-		app.get("/transaction", async (req, res) => {
-			const { user } = req.query;
-			const result = await transactionCollection
+		app.get("/transaction/send-money/:userPhone", async (req, res) => {
+			const { userPhone } = req.params;
+			const result = await sendMoneyTransactionCollection
 				.find({ senderPhone: user })
+				.toArray();
+			res.send(result);
+		});
+		app.get("/transaction/cash-in/:userPhone", async (req, res) => {
+			const { userPhone } = req.params;
+			const result = await sendMoneyTransactionCollection
+				.find({ senderPhone: user })
+				.toArray();
+			res.send(result);
+		});
+		app.get("/transaction/cash-out/:userPhone", async (req, res) => {
+			const { userPhone } = req.params;
+			const result = await sendMoneyTransactionCollection
+				.find({ senderPhone: userPhone })
 				.toArray();
 			res.send(result);
 		});
@@ -71,15 +91,15 @@ async function run() {
 			if (search) {
 				// query.user = {};
 				// query.user.name = { $regex: search, $options: "i" };
-				if (search) query['user.name'] = { $regex: search, $options: "i" };
+				if (search) query["user.name"] = { $regex: search, $options: "i" };
 			}
 			if (filter) query.status = { $regex: filter, $options: "i" };
-			const result = await cashInRequestedCollection.find(query).toArray();
+			const result = await cashInTransactionCollection.find(query).toArray();
 			res.send(result);
 		});
 		// confirm or reject user cashin
 		app.patch("/confirm-cashin", async (req, res) => {
-			const { user, amount, agentPhoneNumber, _id } = req.body;
+			const { user, amount, agentPhoneNumber, _id: transactionID } = req.body;
 			const { phone: userPhoneNumber } = user;
 			const { balance: agentBalance } = await usersCollection.findOne({
 				phone: agentPhoneNumber,
@@ -88,7 +108,7 @@ async function run() {
 				phone: userPhoneNumber,
 			});
 			if (agentBalance < amount)
-				return res.send({ message: "Your Balance Is Low" });
+				return res.send({ message: "Your Balance Is insufficient" });
 
 			const updateUserBalance = await usersCollection.updateOne(
 				{ phone: phone },
@@ -106,8 +126,8 @@ async function run() {
 					},
 				},
 			);
-			await cashInRequestedCollection.updateOne(
-				{ _id: new ObjectId(_id) },
+			await cashInTransactionCollection.updateOne(
+				{ _id: new ObjectId(transactionID) },
 				{
 					$set: {
 						status: "success",
@@ -152,9 +172,10 @@ async function run() {
 				timeStamp: Date.now(),
 				transaction: crypto.randomUUID(),
 				reference,
+				status: "pending",
 				PaymentMethod: "cashIn",
 			};
-			await cashInRequestedCollection.insertOne(transactionDoc);
+			await cashInTransactionCollection.insertOne(transactionDoc);
 			res.status(200).send({
 				message: "Cash In  Request Success",
 			});
@@ -162,29 +183,20 @@ async function run() {
 
 		// cash out
 		app.post("/cash-out", async (req, res) => {
-			const { amount, pin, agentPhoneNumber, reference, cashOuterDetail } =
-				req.body;
-			const { name: outerName, phone: outerPhone } = cashOuterDetail;
-			const existOuterAccount = await usersCollection.findOne({
+			const {
+				amount,
+				pin: requestedUserPin,
+				agentPhoneNumber,
+				reference,
+				cashOuterDetail,
+			} = req.body;
+			const { phone: outerPhone } = cashOuterDetail;
+			const { pin: existOuterPin } = await usersCollection.findOne({
 				phone: outerPhone,
 			});
-			const { pin: existOuterPin, balance: outerBalance } = existOuterAccount;
-			const pinIsMatch = checkPinValidate(pin, existOuterPin);
+			const pinIsMatch = checkPinValidate(requestedUserPin, existOuterPin);
 			if (!pinIsMatch) return res.status(403).send({ message: "Invalid Pin" });
 
-			// update sender account balance
-			const updateOuterBalanceDoc = {
-				$set: {
-					balance: outerBalance - amount,
-				},
-			};
-
-			const cashOuterBalanceUpdateResult = await usersCollection.updateOne(
-				{ phone: outerPhone },
-				updateOuterBalanceDoc,
-			);
-
-			//update receiver account  balance
 			const exitsAgentAccount = await usersCollection.findOne({
 				phone: agentPhoneNumber,
 			});
@@ -193,39 +205,83 @@ async function run() {
 					.status(404)
 					.send({ message: "Given Agent Account Not created" });
 			}
-			const {
-				balance: exitsAgentBalance,
-				phone: exitsAgentPhone,
-				name: agentName,
-			} = exitsAgentAccount;
 
-			const updateAgentBalanceDoc = {
-				$set: {
-					balance: exitsAgentBalance + amount,
-				},
-			};
-			const agentBalanceUpdateResult = await usersCollection.updateOne(
-				{
-					phone: exitsAgentPhone,
-				},
-				updateAgentBalanceDoc,
-			);
 			const transactionDoc = {
-				outerName,
-				outerPhone,
-				agentName,
+				amount,
+				cashOuterDetail,
 				agentPhoneNumber,
 				timeStamp: Date.now(),
 				transaction: crypto.randomUUID(),
 				reference,
-				status: "cashOut",
+				status: "pending",
 			};
-			await transactionCollection.insertOne(transactionDoc);
+			const result = await cashOutTransactionCollection.insertOne(
+				transactionDoc,
+			);
 			res.status(200).send({
-				cashOuterBalanceUpdateResult,
-				agentBalanceUpdateResult,
-				message: "Cash Out Success",
+				result,
+				message: "Cash Out Request Pending",
 			});
+		});
+		// get cash out requested
+		app.get("/all-cashout-request/:agent", async (req, res) => {
+			const { agent } = req.params;
+			const { filter, search } = req.query;
+			let query = {
+				agentPhoneNumber: agent,
+			};
+			if (search) {
+				if (search)
+					query["cashOuterDetail.name"] = { $regex: search, $options: "i" };
+			}
+			if (filter) query.status = { $regex: filter, $options: "i" };
+			const result = await cashOutTransactionCollection.find(query).toArray();
+			res.send(result);
+		});
+		// confirm cash out
+		app.patch("/confirm-cash-out", async (req, res) => {
+			const {
+				cashOuterDetail: user,
+				amount,
+				agentPhoneNumber,
+				_id: transactionID,
+			} = req.body;
+			const { phone: userPhoneNumber } = user;
+			const { balance: agentBalance } = await usersCollection.findOne({
+				phone: agentPhoneNumber,
+			});
+			const { balance: userBalance, phone } = await usersCollection.findOne({
+				phone: userPhoneNumber,
+			});
+			if (agentBalance < amount)
+				return res.send({ message: "Your Balance Is insufficient" });
+
+			const updateUserBalance = await usersCollection.updateOne(
+				{ phone: phone },
+				{
+					$set: {
+						balance: userBalance - amount,
+					},
+				},
+			);
+			const updateAgentBalance = await usersCollection.updateOne(
+				{ phone: agentPhoneNumber },
+				{
+					$set: {
+						balance: agentBalance + amount,
+					},
+				},
+			);
+			await cashOutTransactionCollection.updateOne(
+				{ _id: new ObjectId(transactionID) },
+				{
+					$set: {
+						status: "success",
+					},
+				},
+			);
+
+			res.status(200).send({ updateUserBalance, updateAgentBalance });
 		});
 		// send money
 		app.post("/send-money", async (req, res) => {
@@ -291,7 +347,7 @@ async function run() {
 				reference,
 				status: "sendMoney",
 			};
-			await transactionCollection.insertOne(transactionDoc);
+			await sendMoneyTransactionCollection.insertOne(transactionDoc);
 			res.status(200).send({
 				senderBalanceUpdateResult,
 				receiverBalanceUpdateResult,
