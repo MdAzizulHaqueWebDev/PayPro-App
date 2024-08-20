@@ -14,7 +14,7 @@ const Sidebar = () => {
 	if (loading) return <Loader />;
 	return (
 		<>
-			<div className="h-full p-3 space-y-2 w-60 bg-rose-100 dark:bg-gray-50 dark:text-gray-800">
+			<div className="h-screen p-3 space-y-2 w-60 bg-rose-100 dark:bg-gray-50 dark:text-gray-800">
 				<div className="flex items-center p-2 space-x-4">
 					<img
 						src="https://static.vecteezy.com/system/resources/thumbnails/036/280/651/small/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
