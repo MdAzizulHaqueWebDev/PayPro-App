@@ -59,26 +59,20 @@ async function run() {
 		// tex
 
 		// get transaction
-		app.get("/transaction/send-money/:userPhone", async (req, res) => {
+		app.get("/transaction/:userPhone", async (req, res) => {
 			const { userPhone } = req.params;
-			const result = await sendMoneyTransactionCollection
-				.find({ senderPhone: user })
-				.toArray();
-			res.send(result);
-		});
-		app.get("/transaction/cash-in/:userPhone", async (req, res) => {
-			const { userPhone } = req.params;
-			const result = await sendMoneyTransactionCollection
-				.find({ senderPhone: user })
-				.toArray();
-			res.send(result);
-		});
-		app.get("/transaction/cash-out/:userPhone", async (req, res) => {
-			const { userPhone } = req.params;
-			const result = await sendMoneyTransactionCollection
+			const sendMoneyTransactions = await sendMoneyTransactionCollection
 				.find({ senderPhone: userPhone })
 				.toArray();
 			res.send(result);
+			// const cashInTransactions = await sendMoneyTransactionCollection
+			// 	.find({ senderPhone: userPhone })
+			// 	.toArray();
+			// res.send(result);
+			// const cashOutTransactions = await sendMoneyTransactionCollection
+			// 	.find({ cashOuterDetail[""]: userPhone })
+			// 	.toArray();
+			res.send(sendMoneyTransactions);
 		});
 
 		// get cashin request
@@ -239,7 +233,7 @@ async function run() {
 			res.send(result);
 		});
 		// confirm cash out
-		app.patch("/confirm-cash-out", async (req, res) => {
+		app.patch("/confirm-cashout", async (req, res) => {
 			const {
 				cashOuterDetail: user,
 				amount,

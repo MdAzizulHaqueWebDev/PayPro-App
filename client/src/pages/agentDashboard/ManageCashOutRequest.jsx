@@ -38,7 +38,7 @@ const ManageCashOutRequest = () => {
 			confirmButtonText: "Yes",
 		}).then((result) => {
 			if (result.isConfirmed) {
-				axiosSecure.patch(`/confirm-cashin`, transaction).then((res) => {
+				axiosSecure.patch(`/confirm-cashout`, transaction).then((res) => {
 					console.log(res);
 					if (
 						res.data.updateUserBalance.modifiedCount > 0 &&

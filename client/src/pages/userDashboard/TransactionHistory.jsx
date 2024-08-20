@@ -18,42 +18,15 @@ const TransactionHistory = () => {
 		isLoading,
 		refetch,
 	} = useQuery({
-		queryKey: ["allCashInRequest", search, filter],
+		queryKey: ["transactions", search, filter],
 		queryFn: async () => {
 			const { data } = await axiosSecure.get(
-				`/transaction?user=${user?.phone}?search=${search}&filter=${filter}`,
+				`/transaction/user=${user?.phone}?search=${search}&filter=${filter}`,
 			);
 			return data;
 		},
 	});
-	// const confirmCashIn = (query) => {
-	// 	const { transaction, event } = query;
-	// 	console.log(transaction);
-	// 	Swal.fire({
-	// 		title: "Are you sure?",
-	// 		icon: "warning",
-	// 		showCancelButton: true,
-	// 		confirmButtonColor: "#3085d6",
-	// 		cancelButtonColor: "#d33",
-	// 		confirmButtonText: "Yes",
-	// 	}).then((result) => {
-	// 		if (result.isConfirmed) {
-	// 			axiosSecure.patch(`/confirm-cashin`, transaction).then((res) => {
-	// 				console.log(res);
-	// 				if (
-	// 					res.data.updateUserBalance.modifiedCount > 0 &&
-	// 					res.data.updateAgentBalance.modifiedCount > 0
-	// 				) {
-	// 					refetch();
-	// 					Swal.fire({
-	// 						title: "Done!",
-	// 						icon: "success",
-	// 					});
-	// 				}
-	// 			});
-	// 		}
-	// 	});
-	// };
+	console.log(transactions);
 
 	const handleSearch = (event) => {
 		event.preventDefault();
@@ -110,17 +83,26 @@ const TransactionHistory = () => {
 						</thead>
 						<tbody>
 							{/* row 1 */}
-							{transactions?.map((transaction, index) => (
-								<tr key={transaction.user._id}>
-									<td>{index + 1}</td>
-									<td>{transaction.user?.name}</td>
-									<td>{transaction.user?.phone}</td>
-									<td>{transaction.amount}</td>
-									<td className="">Details</td>
-								</tr>
-							))}
+							{transactions.length > 0
+								? transactions?.map((transaction, index) => (
+										<tr key={transaction.user._id}>
+											<td>{index + 1}</td>
+											<td>{transaction.user?.name}</td>
+											<td>{transaction.user?.phone}</td>
+											<td>{transaction.amount}</td>
+											<td className="">Details</td>
+										</tr>
+								  ))
+								: ""}
 						</tbody>
 					</table>
+					{transactions.length ? (
+						""
+					) : (
+						<p className="text-5xl text-red-300 p-6">
+							Your Transaction is Empty
+						</p>
+					)}
 				</div>
 			</div>
 		</>

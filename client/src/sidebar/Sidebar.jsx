@@ -17,8 +17,8 @@ const Sidebar = () => {
 			<div className="h-full p-3 space-y-2 w-60 bg-rose-100 dark:bg-gray-50 dark:text-gray-800">
 				<div className="flex items-center p-2 space-x-4">
 					<img
-						src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwyfHxoZWFkc2hvdHxlbnwwfDB8fHwxNjk1ODE3MjEzfDA&ixlib=rb-4.0.3&q=80&w=1080"
-						alt=""
+						src="https://static.vecteezy.com/system/resources/thumbnails/036/280/651/small/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+						alt="user photo"
 						className="w-12 h-12 rounded-full dark:bg-gray-500"
 					/>
 					<div>
