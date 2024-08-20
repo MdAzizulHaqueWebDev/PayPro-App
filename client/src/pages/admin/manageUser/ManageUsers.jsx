@@ -94,7 +94,7 @@ const ManageUsers = () => {
 					</select>
 				</form>
 				<div className="overflow-x-auto  rounded-t-2xl">
-					<table className="table w-full">
+					<table className="table text-center w-full">
 						{/* head */}
 						<thead>
 							<tr className="bg-orange-200 text-start">

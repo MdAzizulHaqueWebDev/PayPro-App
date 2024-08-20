@@ -6,6 +6,7 @@ import AgentRoutes from "./AgentRoutes";
 import AdminRoutes from "./AdminRoutes";
 import GeneralUserRoutes from "./GeneralUserRoutes";
 import Loader from "../components/Loader";
+import { BiCaptions, BiSolidDashboard } from "react-icons/bi";
 
 const Sidebar = () => {
 	const { user, loading } = useAuth();
@@ -13,10 +14,10 @@ const Sidebar = () => {
 	if (loading) return <Loader />;
 	return (
 		<>
-			<div className="h-full p-3 space-y-2 w-60 dark:bg-gray-50 dark:text-gray-800">
+			<div className="h-full p-3 space-y-2 w-60 bg-rose-100 dark:bg-gray-50 dark:text-gray-800">
 				<div className="flex items-center p-2 space-x-4">
 					<img
-						src="https://source.unsplash.com/100x100/?portrait"
+						src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwyfHxoZWFkc2hvdHxlbnwwfDB8fHwxNjk1ODE3MjEzfDA&ixlib=rb-4.0.3&q=80&w=1080"
 						alt=""
 						className="w-12 h-12 rounded-full dark:bg-gray-500"
 					/>
@@ -31,12 +32,31 @@ const Sidebar = () => {
 				</div>
 				<div className="divide-y dark:divide-gray-300">
 					<ul className="pt-2 pb-4 space-y-1 text-sm">
+						<li className="dark:bg-gray-100 dark:text-gray-900">
+							<Link
+								to="/dashboard"
+								className="flex items-center p-2 space-x-3 rounded-md"
+							>
+								<BiCaptions />
+								<span>Profile</span>
+							</Link>
+						</li>
 						{user && role === "user" && <GeneralUserRoutes />}
 						{user && role === "agent" && <AgentRoutes />}
 						{user && role === "admin" && <AdminRoutes />}
 					</ul>
 					{/* common  */}
 					<ul className="pt-4 pb-2 space-y-1 text-sm">
+						<li>
+							<Link
+								rel="noopener noreferrer"
+								to={"/"}
+								className="flex items-center p-2 space-x-3 rounded-md"
+							>
+								<BiSolidDashboard />
+								<span>Home</span>
+							</Link>
+						</li>
 						<li>
 							<Link
 								rel="noopener noreferrer"

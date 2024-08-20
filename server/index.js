@@ -64,9 +64,17 @@ async function run() {
 		// get cashin request
 		app.get("/all-cashin-request/:agent", async (req, res) => {
 			const { agent } = req.params;
-			const result = await cashInRequestedCollection
-				.find({ agentPhoneNumber: agent })
-				.toArray();
+			const { filter, search } = req.query;
+			let query = {
+				agentPhoneNumber: agent,
+			};
+			if (search) {
+				// query.user = {};
+				// query.user.name = { $regex: search, $options: "i" };
+				if (search) query['user.name'] = { $regex: search, $options: "i" };
+			}
+			if (filter) query.status = { $regex: filter, $options: "i" };
+			const result = await cashInRequestedCollection.find(query).toArray();
 			res.send(result);
 		});
 		// confirm or reject user cashin

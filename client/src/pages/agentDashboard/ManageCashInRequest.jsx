@@ -6,6 +6,7 @@ import { useState } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Loader from "../../components/Loader";
 import useAuth from "../../hooks/useAuth";
+import DashboardSectionTitle from "../../components/DashboardSectionTitle";
 const ManageCashInRequest = () => {
 	const { user } = useAuth();
 	const axiosSecure = useAxiosSecure();
@@ -64,6 +65,7 @@ const ManageCashInRequest = () => {
 	return (
 		<>
 			<div className="bg-gray-100 w-full px-3 font-bold p-3">
+				<DashboardSectionTitle text={"Manage User Cash In Request"} />
 				<form
 					onSubmit={handleSearch}
 					className="flex flex-col my-3 md:flex-row gap-3"
@@ -96,10 +98,10 @@ const ManageCashInRequest = () => {
 					</select>
 				</form>
 				<div className="overflow-x-auto  rounded-t-2xl">
-					<table className="table w-full">
+					<table className="table text-center w-full">
 						{/* head */}
 						<thead>
-							<tr className="bg-orange-200 text-start">
+							<tr className="bg-orange-200 ">
 								<th></th>
 								<th>User Name</th>
 								<th>User Phone</th>
